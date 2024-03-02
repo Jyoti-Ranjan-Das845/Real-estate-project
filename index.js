@@ -5,9 +5,14 @@ import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 
+const PORT = 3000;
+const GMAIL_CLIENT_ID = "579714708688-f9t4vp17ea77hm42rfmk0p69s3s70r24.apps.googleusercontent.com";
+const GMAIL_CLIENT_SECRET = "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";
+const GMAIL_REDIRECT_URL = "https://real-estate-project-mu.vercel.app/auth/callback";
+
 
 const app = express();
-const oauth2Client = new OAuth2Client(process.env.GMAIL_CLIENT_ID, process.env.GMAIL_CLIENT_SECRET, process.env.GMAIL_REDIRECT_URL);
+const oauth2Client = new OAuth2Client(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REDIRECT_URL);
 
 app.get("/", (req,res) => {
     res.send("Hi you are in !");
@@ -69,6 +74,6 @@ app.post('/notifications', async (req, res) => {
     res.status(200).end();
 });
 
-app.listen(process.env.PORT, () => {
+app.listen(PORT, () => {
     console.log(`Server running at port :- ${process.env.PORT}`);
 });
