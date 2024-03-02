@@ -9,6 +9,10 @@ dotenv.config();
 const app = express();
 const oauth2Client = new OAuth2Client(process.env.GMAIL_CLIENT_ID, process.env.GMAIL_CLIENT_SECRET, process.env.GMAIL_REDIRECT_URL);
 
+app.get("/", (req,res) => {
+    res.send("Hi you are in !");
+})
+
 app.get('/auth', (req, res) => {
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline',
