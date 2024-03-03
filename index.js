@@ -2,6 +2,8 @@ import express from "express";
 import dotenv from "dotenv";
 import {google} from "googleapis";
 import { OAuth2Client } from "google-auth-library";
+import { updateFetchTime, getLastTime } from "./timefunc/time.js";
+import cron from 'node-cron';
 
 dotenv.config();
 
@@ -13,6 +15,12 @@ const GMAIL_REDIRECT_URL = "https://743d-2405-201-a007-cef6-14df-6efc-8822-135e.
 
 const app = express();
 const oauth2Client = new OAuth2Client(GMAIL_CLIENT_ID, GMAIL_CLIENT_SECRET, GMAIL_REDIRECT_URL);
+cron.schedule('0 6 * * *', async () => {
+    const lastTime  = await getLastTime();
+    console.log(lastTime);
+},{
+    timezone : 'Asia/Kolkata'
+});
 
 app.get("/", (req,res) => {
     res.send("Hi you are in !");
@@ -58,9 +66,10 @@ app.get('/auth/callback', async (req, res) => {
           messageBody,
         };
       });
-
+      
       const jsonData = await Promise.all(data);
       console.log(jsonData);
+      updateFetchTime();
       res.send(jsonData);
     }catch (error) {
         console.error('Error:', error.message);
