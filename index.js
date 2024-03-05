@@ -74,7 +74,7 @@ async function fetchData() {
 
 
 // Load or create the last date
-let lastDate = readLastDate();
+let lastStoredDateTime = readLastDate();
 
 
 app.get('/get-gmail-data', async (req, res) => {
@@ -82,7 +82,24 @@ app.get('/get-gmail-data', async (req, res) => {
         const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
         // Calculate the date range dynamically based on the lastDate
-        const startDateInSeconds = Math.floor(new Date(lastDate).getTime() / 1000) - 19800;
+
+        let startDateInSeconds;
+
+        if (lastStoredDateTime && lastStoredDateTime.length === 2) {
+            const [datePart, timePart] = lastStoredDateTime;
+            const [hours, minutes, seconds] = timePart.split(':').map(Number);
+
+            console.log(new Date().getTimezoneOffset() * 60000);
+
+            const secTimeZone = (new Date().getTimezoneOffset() * 60000)/1000;
+            startDateInSeconds = Math.floor(new Date(lastStoredDateTime[0]).getTime() / 1000) + secTimeZone + (hours*60*60) + (minutes*60) + (seconds);
+            console.log(startDateInSeconds);
+        } else {
+            // Handle the case when no last stored date is available
+            startDateInSeconds = null;
+        }
+        console.log(startDateInSeconds);
+        // console.log(`cH :- ${checkTime} , act :- ${startDateInSeconds}`);
         // const currentDateInSeconds = Math.floor(Date.now() / 1000);
         let msgParam = {
             userId: 'me',
@@ -98,6 +115,19 @@ app.get('/get-gmail-data', async (req, res) => {
         const messages = await gmail.users.messages.list(msgParam);
         const result=[];
         const messageList = messages.data.messages;
+
+        if(!messageList){
+
+            const currentDate = new Date(Date.now() - (new Date().getTimezoneOffset() * 60000));
+            lastStoredDateTime = currentDate.toISOString();
+            const formattedLastDate = lastStoredDateTime.slice(0, 19).replace('T', ' ');
+        
+            // Now you can save the formatted date and time
+            fs.writeFileSync(LAST_DATE_PATH, `"${formattedLastDate}"`);
+
+            res.send("No new mails received!");
+        }else{
+
         for (const message of messageList) {
             const messageDetails = await gmail.users.messages.get({
                 userId: 'me',
@@ -126,14 +156,15 @@ app.get('/get-gmail-data', async (req, res) => {
         }
         
             const currentDate = new Date(Date.now() - (new Date().getTimezoneOffset() * 60000));
-            lastDate = currentDate.toISOString();
-            const formattedLastDate = lastDate.slice(0, 19).replace('T', ' ');
+            lastStoredDateTime = currentDate.toISOString();
+            const formattedLastDate = lastStoredDateTime.slice(0, 19).replace('T', ' ');
         
             // Now you can save the formatted date and time
             fs.writeFileSync(LAST_DATE_PATH, `"${formattedLastDate}"`);
 
 
         res.json(result);
+    }
     } catch (error) {
         console.error('Error fetching Gmail data:', error.message);
         res.status(500).send(`Error fetching Gmail data: ${error.message}`);
