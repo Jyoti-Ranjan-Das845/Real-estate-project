@@ -134,7 +134,10 @@ app.get('/get-gmail-data', async (req, res) => {
                 id: message.id,
             });
             const messageBody = messageDetails.data.payload.parts && messageDetails.data.payload.parts[0].body && messageDetails.data.payload.parts[0].body.data;
-            const decodedMessageBody = messageBody ? Buffer.from(messageDetails.data.payload.parts[0].body.data, 'base64').toString('utf-8') : '';
+            const decodedMessageBody = messageBody ? 
+    Buffer.from(messageDetails.data.payload.parts[0].body.data, 'base64').toString('utf-8').replace(/[\r\n]+/g, '') :
+    '';
+
         
             const messageSnippet = messageDetails.data.snippet;
             
